@@ -1,0 +1,63 @@
+# =========================
+# Docker
+# =========================
+**/data/
+**/volumes/
+docker-volumes/
+.docker/
+docker-compose.override.yml
+
+# =========================
+# Hadoop / Hive / Spark
+# =========================
+hdfs/
+hadoop-data/
+hive-data/
+metastore_db/
+warehouse/
+tmp/
+logs/
+*.log
+
+# =========================
+# Data files (ALL ignored)
+# =========================
+*.csv
+*.tsv
+*.json
+*.parquet
+*.avro
+
+# =========================
+# Hue
+# =========================
+hue.db
+hue.log
+hue.pid
+
+# =========================
+# Environment / Secrets
+# =========================
+.env
+*.env.local
+
+# =========================
+# OS junk
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Editors / IDE
+# =========================
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# =========================
+# Python (future)
+# =========================
+__pycache__/
+*.pyc
+
