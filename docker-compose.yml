@@ -36,15 +36,18 @@ services:
       - ./hadoop.env
 
   spark-master:
-    image: bde2020/spark-master:3.0.1-hadoop3.2
+    build: ./spark
     container_name: spark-master
     ports:
       - 8080:8080
       - 7077:7077
+      - 8000:8000
     environment: 
       - PYSPARK_PYTHON=python3
     env_file:
       - ./hadoop.env
+    volumes:
+      - ./flows:/flows
 
   spark-worker1:
     image: bde2020/spark-worker:3.0.1-hadoop3.2
@@ -57,6 +60,8 @@ services:
       - 8081:8081
     env_file:
       - ./hadoop.env
+    volumes:
+      - ./flows:/flows
   
   spark-worker2:
     image: bde2020/spark-worker:3.0.1-hadoop3.2
@@ -69,7 +74,9 @@ services:
       - 8082:8081
     env_file:
       - ./hadoop.env
-  
+    volumes:
+      - ./flows:/flows
+      
   hive-server:
     image: bde2020/hive:2.3.2-postgresql-metastore
     container_name: hive-server
@@ -107,7 +114,43 @@ services:
       depends_on: 
         - hive-server
 
+  prefect-postgres:
+    image: postgres:15
+    container_name: prefect-postgres
+    environment:
+      POSTGRES_USER: prefect
+      POSTGRES_PASSWORD: prefect
+      POSTGRES_DB: prefect
+    volumes:
+      - prefect-db:/var/lib/postgresql/data
+
+  prefect-server:
+    image: prefecthq/prefect:2-latest
+    container_name: prefect-server
+    command: prefect server start --host 0.0.0.0
+    depends_on:
+      - prefect-postgres
+    ports:
+      - "4200:4200"
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+      - PREFECT_API_DATABASE_CONNECTION_URL=postgresql+asyncpg://prefect:prefect@prefect-postgres:5432/prefect
+
+  prefect-worker:
+    image: prefecthq/prefect:2-latest
+    container_name: prefect-worker
+    depends_on:
+      - prefect-server
+      - spark-master
+    command: prefect worker start --pool default-worker-pool
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+    volumes:
+      - ./flows:/flows
+
+
 volumes:
   namenode:
   hadoop_datanode1:
   hadoop_datanode2:
+  prefect-db:
