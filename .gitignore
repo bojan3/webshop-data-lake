@@ -61,3 +61,6 @@ Thumbs.db
 __pycache__/
 *.pyc
 
+/flows/__pycache__/
+
+/flows/.prefectignore

@@ -1,22 +1,28 @@
+import requests
 from prefect import flow, task
-import subprocess
 
-@task(retries=1, retry_delay_seconds=30)
 
-def run_spark_job():
-    subprocess.run(
-        [
-            "docker", "exec", "spark-master",
-            "/spark/bin/spark-submit",
-            "--master", "spark://spark-master:7077",
-            "/flows/first_batch_job.py"
-        ],
-        check=True
+@task
+def trigger_spark_job():
+    response = requests.post(
+        "http://spark-master:8000/run", params={"filename": "first_batch_job.py"}
     )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    if not data.get("success"):
+        raise RuntimeError(data.get("message"))
+
+    return data["message"]
+
 
 @flow(name="events-apr-2020-batch")
 def events_batch_flow():
-    run_spark_job()
+    msg = trigger_spark_job()
+    print(msg)
+
 
 if __name__ == "__main__":
     events_batch_flow()
