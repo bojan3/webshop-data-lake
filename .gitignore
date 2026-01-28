@@ -64,3 +64,11 @@ __pycache__/
 /flows/__pycache__/
 
 /flows/.prefectignore
+
+# =========================
+# Reddit collector service logs
+# =========================
+
+/reddit_collector_service/logs/
+/reddit_collector_service/logs/*
+/reddit_collector_service/last_run.txt
