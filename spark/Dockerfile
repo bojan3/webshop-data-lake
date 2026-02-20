@@ -8,4 +8,7 @@ COPY server.py /app/server.py
 
 EXPOSE 8000
 
-CMD bash -c "python /app/server.py"
+CMD bash -c "\
+  /spark/bin/start-master.sh && \
+  python /app/server.py \
+"

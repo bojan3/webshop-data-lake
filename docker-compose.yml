@@ -35,7 +35,7 @@ services:
       - ./hadoop.env
 
   spark-master:
-    build: ./spark
+    image: bde2020/spark-master:3.0.1-hadoop3.2
     container_name: spark-master
     ports:
       - 8080:8080
@@ -194,6 +194,19 @@ services:
     command: >
       sh -c "pip install --no-cache-dir requests kafka-python &&
              python reddit_collector_service.py"
+  
+  spark-streaming:
+    image: bde2020/spark-submit:3.0.1-hadoop3.2
+    container_name: spark-streaming
+    depends_on:
+      - spark-master
+      - namenode
+      - kafka
+    env_file:
+      - ./hadoop.env
+    volumes:
+      - ./spark_streaming:/spark_streaming
+    command: tail -f /dev/null
 
 volumes:
   namenode:
