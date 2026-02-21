@@ -39,7 +39,6 @@ result = (
 
 result.show(20)
 
-# Upis u HDFS
 result.write.mode("overwrite").parquet(
     "hdfs://namenode:9000/data/processed/views_by_brand/2020-04"
 )
