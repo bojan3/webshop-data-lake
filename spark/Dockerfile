@@ -5,10 +5,11 @@ USER root
 RUN pip install "Flask<2"
 
 COPY server.py /app/server.py
+COPY spark-defaults.conf /spark/conf/spark-defaults.conf
 
 EXPOSE 8000
 
 CMD bash -c "\
-  /spark/bin/start-master.sh && \
+  /spark/sbin/start-master.sh && \
   python /app/server.py \
 "

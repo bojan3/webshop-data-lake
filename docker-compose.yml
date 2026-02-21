@@ -35,7 +35,7 @@ services:
       - ./hadoop.env
 
   spark-master:
-    image: bde2020/spark-master:3.0.1-hadoop3.2
+    build: ./spark
     container_name: spark-master
     ports:
       - 8080:8080
@@ -43,6 +43,9 @@ services:
       - 8000:8000
     environment:
       - PYSPARK_PYTHON=python3
+      - CLICKHOUSE_URL=jdbc:clickhouse://clickhouse:8123/webshop_data_lake
+      - CLICKHOUSE_USER=analytics
+      - CLICKHOUSE_PASSWORD=analytics123
     env_file:
       - ./hadoop.env
     volumes:
@@ -55,6 +58,9 @@ services:
       - spark-master
     environment:
       - SPARK_MASTER=spark://spark-master:7077
+      - CLICKHOUSE_URL=jdbc:clickhouse://clickhouse:8123/webshop_data_lake
+      - CLICKHOUSE_USER=analytics
+      - CLICKHOUSE_PASSWORD=analytics123
     ports:
       - 8081:8081
     env_file:
@@ -69,6 +75,9 @@ services:
       - spark-master
     environment:
       - SPARK_MASTER=spark://spark-master:7077
+      - CLICKHOUSE_URL=jdbc:clickhouse://clickhouse:8123/webshop_data_lake
+      - CLICKHOUSE_USER=analytics
+      - CLICKHOUSE_PASSWORD=analytics123
     ports:
       - 8082:8081
     env_file:
@@ -194,6 +203,32 @@ services:
     command: >
       sh -c "pip install --no-cache-dir requests kafka-python &&
              python reddit_collector_service.py"
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    container_name: clickhouse
+    environment:
+      CLICKHOUSE_DB: webshop_data_lake
+      CLICKHOUSE_USER: analytics
+      CLICKHOUSE_PASSWORD: analytics123
+    ports:
+      - "8123:8123"
+      - "9001:9000"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+
+# admin 123admin (admin@admin.admin)
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
+    depends_on:
+      - clickhouse
+    ports:
+      - "3001:3000"
+    volumes:
+      - metabase-data:/metabase-data
+    environment:
+      MB_DB_FILE: /metabase-data/metabase.db
   
   spark-streaming:
     image: bde2020/spark-submit:3.0.1-hadoop3.2
@@ -213,3 +248,5 @@ volumes:
   hadoop_datanode1:
   hadoop_datanode2:
   prefect-db:
+  clickhouse-data:
+  metabase-data:
