@@ -12,10 +12,26 @@ SCRIPTS_DIR = "/flows"
 @app.route("/run", methods=["POST"])
 def run_script():
     filename = request.args.get("filename")
+    data_period = (
+        request.args.get("data_period")
+        or request.args.get("data-period")
+        or request.form.get("data_period")
+        or request.form.get("data-period")
+        or (request.get_json(silent=True) or {}).get("data_period")
+        or (request.get_json(silent=True) or {}).get("data-period")
+    )
 
     if not filename:
         return jsonify(
             {"success": False, "message": "Filename parameter is required."}
+        ), 400
+
+    if not data_period:
+        return jsonify(
+            {
+                "success": False,
+                "message": "Data period is required. Provide data_period (or data-period).",
+            }
         ), 400
 
     if not filename.endswith(".py"):
@@ -34,8 +50,12 @@ def run_script():
         ), 404
 
     try:
+        cmd = ["/spark/bin/spark-submit", file_path]
+        if data_period:
+            cmd.extend(["--data-period", data_period])
+
         process = subprocess.Popen(
-            ["/spark/bin/spark-submit", file_path],
+            cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -48,6 +68,8 @@ def run_script():
                 {
                     "success": True,
                     "message": "Script executed successfully.",
+                    "command": cmd,
+                    "data_period": data_period,
                     "stdout": stdout,
                 }
             )
@@ -56,6 +78,8 @@ def run_script():
                 {
                     "success": False,
                     "message": "Script execution failed.",
+                    "command": cmd,
+                    "data_period": data_period,
                     "stdout": stdout,
                     "stderr": stderr,
                     "exit_code": exit_code,
