@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 
+import argparse
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, count
 
-DATA_PERIOD = "2020-Apr"
-
-PROCESSING_VIEW_EVENTS_PATH = (
-    f"hdfs://namenode:9000/data/processing/monthly_view_events/{DATA_PERIOD}"
-)
-PROCESSING_HOURLY_PRODUCT_VIEWS_PATH = (
-    f"hdfs://namenode:9000/data/processing/hourly_product_views/{DATA_PERIOD}"
-)
-
 
 def create_spark_session() -> SparkSession:
-    return SparkSession.builder.appName("AvgHourlyProductViews-Apr2020").getOrCreate()
+    return SparkSession.builder.appName("AvgHourlyProductViews").getOrCreate()
 
 
-def count_hourly_product_views() -> None:
+def count_hourly_product_views(data_period: str) -> None:
+    processing_view_events_path = (
+        f"hdfs://namenode:9000/data/processing/monthly_view_events/{data_period}"
+    )
+    processing_hourly_product_views_path = (
+        f"hdfs://namenode:9000/data/processing/hourly_product_views/{data_period}"
+    )
+
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(PROCESSING_VIEW_EVENTS_PATH)
+    df = spark.read.option("header", "true").csv(processing_view_events_path)
 
     hourly_views_df = (
         df.groupBy("event_date", "event_hour")
@@ -28,10 +28,17 @@ def count_hourly_product_views() -> None:
     )
 
     hourly_views_df.write.mode("overwrite").option("header", "true").csv(
-        PROCESSING_HOURLY_PRODUCT_VIEWS_PATH
+        processing_hourly_product_views_path
     )
     spark.stop()
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data-period", "--data_period", required=True)
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    count_hourly_product_views()
+    args = parse_args()
+    count_hourly_product_views(args.data_period)

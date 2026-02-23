@@ -1,35 +1,35 @@
 # -*- coding: utf-8 -*-
 
+import argparse
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import coalesce, col, lit
-
-DATA_PERIOD = "2020-Apr"
-
-PROCESSING_CART_EVENTS_BY_USER_COUNT_PATH = (
-    f"hdfs://namenode:9000/data/processing/monthly_cart_events_by_user_count/{DATA_PERIOD}"
-)
-PROCESSING_PURCHASE_EVENTS_BY_USER_COUNT_PATH = (
-    f"hdfs://namenode:9000/data/processing/monthly_purchase_events_by_user_count/{DATA_PERIOD}"
-)
-PROCESSING_CART_PURCHASE_COUNT_DIFF_PATH = (
-    f"hdfs://namenode:9000/data/processing/monthly_cart_purchase_count_diff/{DATA_PERIOD}"
-)
 
 
 def create_spark_session() -> SparkSession:
     return SparkSession.builder.appName(
-        "AvgMonthlyAddToCartNotPurchased-Apr2020"
+        "AvgMonthlyAddToCartNotPurchased"
     ).getOrCreate()
 
 
-def join_cart_and_purchase_counts() -> None:
+def join_cart_and_purchase_counts(data_period: str) -> None:
+    processing_cart_events_by_user_count_path = (
+        f"hdfs://namenode:9000/data/processing/monthly_cart_events_by_user_count/{data_period}"
+    )
+    processing_purchase_events_by_user_count_path = (
+        f"hdfs://namenode:9000/data/processing/monthly_purchase_events_by_user_count/{data_period}"
+    )
+    processing_cart_purchase_count_diff_path = (
+        f"hdfs://namenode:9000/data/processing/monthly_cart_purchase_count_diff/{data_period}"
+    )
+
     spark = create_spark_session()
 
     cart_counts_df = spark.read.option("header", "true").csv(
-        PROCESSING_CART_EVENTS_BY_USER_COUNT_PATH
+        processing_cart_events_by_user_count_path
     )
     purchase_counts_df = spark.read.option("header", "true").csv(
-        PROCESSING_PURCHASE_EVENTS_BY_USER_COUNT_PATH
+        processing_purchase_events_by_user_count_path
     )
 
     result_df = (
@@ -45,10 +45,17 @@ def join_cart_and_purchase_counts() -> None:
     )
 
     result_df.write.mode("overwrite").option("header", "true").csv(
-        PROCESSING_CART_PURCHASE_COUNT_DIFF_PATH
+        processing_cart_purchase_count_diff_path
     )
     spark.stop()
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data-period", "--data_period", required=True)
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    join_cart_and_purchase_counts()
+    args = parse_args()
+    join_cart_and_purchase_counts(args.data_period)

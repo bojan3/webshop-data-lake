@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import argparse
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, lit
 
-DATA_PERIOD = "2020-Apr"
-
-PROCESSING_BRAND_REVENUE_SUM_PATH = (
-    f"hdfs://namenode:9000/data/processing/brand_revenue_sum/{DATA_PERIOD}"
-)
 CLICKHOUSE_URL = "jdbc:clickhouse://clickhouse:8123/webshop_data_lake"
 CLICKHOUSE_TABLE = "brand_revenue_rank"
 CLICKHOUSE_USER = "analytics"
@@ -15,19 +12,23 @@ CLICKHOUSE_PASSWORD = "analytics123"
 
 
 def create_spark_session() -> SparkSession:
-    return SparkSession.builder.appName("RankBrandsByTotalRevenue-Apr2020").getOrCreate()
+    return SparkSession.builder.appName("RankBrandsByTotalRevenue").getOrCreate()
 
 
-def publish_brand_revenue_rank() -> None:
+def publish_brand_revenue_rank(data_period: str) -> None:
+    processing_brand_revenue_sum_path = (
+        f"hdfs://namenode:9000/data/processing/brand_revenue_sum/{data_period}"
+    )
+
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(PROCESSING_BRAND_REVENUE_SUM_PATH)
+    df = spark.read.option("header", "true").csv(processing_brand_revenue_sum_path)
 
     ranked_df = (
         df.select(
             "rank_brand_name",
             col("total_revenue").cast("double").alias("total_revenue"),
         )
-        .withColumn("batch_processing", lit(DATA_PERIOD))
+        .withColumn("batch_processing", lit(data_period))
         .orderBy(col("total_revenue").desc())
     )
 
@@ -41,5 +42,12 @@ def publish_brand_revenue_rank() -> None:
     spark.stop()
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data-period", "--data_period", required=True)
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    publish_brand_revenue_rank()
+    args = parse_args()
+    publish_brand_revenue_rank(args.data_period)

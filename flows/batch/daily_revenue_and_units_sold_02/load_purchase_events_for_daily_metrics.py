@@ -1,21 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import argparse
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, to_timestamp
 from pyspark.sql.types import DoubleType, LongType, StringType, StructField, StructType
 
-DATA_PERIOD = "2020-Apr"
-INPUT_FILE_NAME = f"{DATA_PERIOD}.csv"
-
-INPUT_PATH = f"hdfs://namenode:9000/data/raw/{INPUT_FILE_NAME}"
-PROCESSING_DAILY_PURCHASE_EVENTS_PATH = (
-    f"hdfs://namenode:9000/data/processing/daily_purchase_events/{DATA_PERIOD}"
-)
-
 
 def create_spark_session() -> SparkSession:
     return SparkSession.builder.appName(
-        "RankProductCategoriesByTotalRevenue-Apr2020"
+        "RankProductCategoriesByTotalRevenue"
     ).getOrCreate()
 
 
@@ -35,19 +29,31 @@ def get_schema() -> StructType:
     )
 
 
+def load_purchase_events_for_daily_metrics(data_period: str) -> None:
+    input_file_name = f"{data_period}.csv"
+    input_path = f"hdfs://namenode:9000/data/raw/{input_file_name}"
+    processing_daily_purchase_events_path = (
+        f"hdfs://namenode:9000/data/processing/daily_purchase_events/{data_period}"
+    )
 
-def load_purchase_events_for_daily_metrics() -> None:
     spark = create_spark_session()
-    df = spark.read.option("header", "true").schema(get_schema()).csv(INPUT_PATH)
+    df = spark.read.option("header", "true").schema(get_schema()).csv(input_path)
     df = df.withColumn(
         "event_time", to_timestamp(col("event_time"), "yyyy-MM-dd HH:mm:ss z")
     )
     purchase_df = df.filter(col("event_type") == "purchase")
     purchase_df.write.mode("overwrite").option("header", "true").csv(
-        PROCESSING_DAILY_PURCHASE_EVENTS_PATH
+        processing_daily_purchase_events_path
     )
     spark.stop()
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data-period", "--data_period", required=True)
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    load_purchase_events_for_daily_metrics()
+    args = parse_args()
+    load_purchase_events_for_daily_metrics(args.data_period)

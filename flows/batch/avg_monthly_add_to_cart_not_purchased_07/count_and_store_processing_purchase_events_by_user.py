@@ -1,37 +1,44 @@
 # -*- coding: utf-8 -*-
 
+import argparse
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, count
-
-DATA_PERIOD = "2020-Apr"
-
-PROCESSING_PURCHASE_EVENTS_PATH = (
-    f"hdfs://namenode:9000/data/processing/monthly_purchase_events/{DATA_PERIOD}"
-)
-PROCESSING_PURCHASE_EVENTS_BY_USER_COUNT_PATH = (
-    f"hdfs://namenode:9000/data/processing/monthly_purchase_events_by_user_count/{DATA_PERIOD}"
-)
 
 
 def create_spark_session() -> SparkSession:
     return SparkSession.builder.appName(
-        "AvgMonthlyAddToCartNotPurchased-Apr2020"
+        "AvgMonthlyAddToCartNotPurchased"
     ).getOrCreate()
 
 
-def count_and_store_processing_purchase_events_by_user() -> None:
+def count_and_store_processing_purchase_events_by_user(data_period: str) -> None:
+    processing_purchase_events_path = (
+        f"hdfs://namenode:9000/data/processing/monthly_purchase_events/{data_period}"
+    )
+    processing_purchase_events_by_user_count_path = (
+        f"hdfs://namenode:9000/data/processing/monthly_purchase_events_by_user_count/{data_period}"
+    )
+
     spark = create_spark_session()
-    purchase_df = spark.read.option("header", "true").csv(PROCESSING_PURCHASE_EVENTS_PATH)
+    purchase_df = spark.read.option("header", "true").csv(processing_purchase_events_path)
 
     user_event_counts_df = purchase_df.groupBy(col("user_id")).agg(
         count(col("event_type")).alias("purchase_event_count")
     )
 
     user_event_counts_df.write.mode("overwrite").option("header", "true").csv(
-        PROCESSING_PURCHASE_EVENTS_BY_USER_COUNT_PATH
+        processing_purchase_events_by_user_count_path
     )
     spark.stop()
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data-period", "--data_period", required=True)
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    count_and_store_processing_purchase_events_by_user()
+    args = parse_args()
+    count_and_store_processing_purchase_events_by_user(args.data_period)

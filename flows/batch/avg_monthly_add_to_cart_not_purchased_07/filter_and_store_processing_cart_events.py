@@ -1,21 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import argparse
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 from pyspark.sql.types import DoubleType, LongType, StringType, StructField, StructType
 
-DATA_PERIOD = "2020-Apr"
-INPUT_FILE_NAME = f"{DATA_PERIOD}.csv"
-
-INPUT_PATH = f"hdfs://namenode:9000/data/raw/{INPUT_FILE_NAME}"
-PROCESSING_CART_EVENTS_PATH = (
-    f"hdfs://namenode:9000/data/processing/monthly_cart_events/{DATA_PERIOD}"
-)
-
 
 def create_spark_session() -> SparkSession:
     return SparkSession.builder.appName(
-        "AvgMonthlyAddToCartNotPurchased-Apr2020"
+        "AvgMonthlyAddToCartNotPurchased"
     ).getOrCreate()
 
 
@@ -35,17 +29,30 @@ def get_schema() -> StructType:
     )
 
 
-def filter_and_store_processing_cart_events() -> None:
+def filter_and_store_processing_cart_events(data_period: str) -> None:
+    input_file_name = f"{data_period}.csv"
+    input_path = f"hdfs://namenode:9000/data/raw/{input_file_name}"
+    processing_cart_events_path = (
+        f"hdfs://namenode:9000/data/processing/monthly_cart_events/{data_period}"
+    )
+
     spark = create_spark_session()
-    df = spark.read.option("header", "true").schema(get_schema()).csv(INPUT_PATH)
+    df = spark.read.option("header", "true").schema(get_schema()).csv(input_path)
     cart_df = df.filter(col("event_type") == "cart").select(
         "event_time", "user_id", "event_type", "product_id"
     )
     cart_df.write.mode("overwrite").option("header", "true").csv(
-        PROCESSING_CART_EVENTS_PATH
+        processing_cart_events_path
     )
     spark.stop()
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data-period", "--data_period", required=True)
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    filter_and_store_processing_cart_events()
+    args = parse_args()
+    filter_and_store_processing_cart_events(args.data_period)

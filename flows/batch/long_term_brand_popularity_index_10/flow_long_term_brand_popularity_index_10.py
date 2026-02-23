@@ -110,7 +110,7 @@ def long_term_brand_popularity_index_10(data_period: str):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data-period", required=True)
+    parser.add_argument("--data-period", "--data_period", required=True)
     return parser.parse_args()
 
 

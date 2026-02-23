@@ -1,17 +1,10 @@
-
 # -*- coding: utf-8 -*-
+
+import argparse
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, lit, to_date
 
-DATA_PERIOD = "2020-Apr"
-
-PROCESSING_DAILY_REVENUE_PATH = (
-    f"hdfs://namenode:9000/data/processing/daily_revenue/{DATA_PERIOD}"
-)
-PROCESSING_DAILY_UNITS_SOLD_PATH = (
-    f"hdfs://namenode:9000/data/processing/daily_units_sold/{DATA_PERIOD}"
-)
 CLICKHOUSE_URL = "jdbc:clickhouse://clickhouse:8123/webshop_data_lake"
 CLICKHOUSE_TABLE = "daily_revenue_and_units_sold_02"
 CLICKHOUSE_USER = "analytics"
@@ -20,15 +13,22 @@ CLICKHOUSE_PASSWORD = "analytics123"
 
 def create_spark_session() -> SparkSession:
     return SparkSession.builder.appName(
-        "RankProductCategoriesByTotalRevenue-Apr2020"
+        "RankProductCategoriesByTotalRevenue"
     ).getOrCreate()
 
 
-def publish_daily_sales_metrics() -> None:
+def publish_daily_sales_metrics(data_period: str) -> None:
+    processing_daily_revenue_path = (
+        f"hdfs://namenode:9000/data/processing/daily_revenue/{data_period}"
+    )
+    processing_daily_units_sold_path = (
+        f"hdfs://namenode:9000/data/processing/daily_units_sold/{data_period}"
+    )
+
     spark = create_spark_session()
-    revenue_df = spark.read.option("header", "true").csv(PROCESSING_DAILY_REVENUE_PATH)
+    revenue_df = spark.read.option("header", "true").csv(processing_daily_revenue_path)
     units_sold_df = spark.read.option("header", "true").csv(
-        PROCESSING_DAILY_UNITS_SOLD_PATH
+        processing_daily_units_sold_path
     )
 
     published_df = (
@@ -38,7 +38,7 @@ def publish_daily_sales_metrics() -> None:
             col("average_daily_revenue").cast("double").alias("average_daily_revenue"),
             col("units_sold").cast("long").alias("units_sold"),
         )
-        .withColumn("batch_processing", lit(DATA_PERIOD))
+        .withColumn("batch_processing", lit(data_period))
         .orderBy(col("event_date").asc())
     )
 
@@ -52,5 +52,12 @@ def publish_daily_sales_metrics() -> None:
     spark.stop()
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data-period", "--data_period", required=True)
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    publish_daily_sales_metrics()
+    args = parse_args()
+    publish_daily_sales_metrics(args.data_period)

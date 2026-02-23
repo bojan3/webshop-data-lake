@@ -1,27 +1,27 @@
 # -*- coding: utf-8 -*-
 
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import (
-    col,
-    sum as spark_sum,
-)
+import argparse
 
-DATA_PERIOD = "2020-Apr"
-PROCESSING_CLEAN_CATEGORIES_PATH = (
-    f"hdfs://namenode:9000/data/processing/purchases_clean_categories/{DATA_PERIOD}"
-)
-PROCESSING_CATEGORY_REVENUE_SUM_PATH = (
-    f"hdfs://namenode:9000/data/processing/category_revenue_sum/{DATA_PERIOD}"
-)
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, sum as spark_sum
+
 
 def create_spark_session() -> SparkSession:
     return SparkSession.builder.appName(
-        "RankProductCategoriesByTotalRevenue-Apr2020"
+        "RankProductCategoriesByTotalRevenue"
     ).getOrCreate()
 
-def sum_prices_by_category() -> None:
+
+def sum_prices_by_category(data_period: str) -> None:
+    processing_clean_categories_path = (
+        f"hdfs://namenode:9000/data/processing/purchases_clean_categories/{data_period}"
+    )
+    processing_category_revenue_sum_path = (
+        f"hdfs://namenode:9000/data/processing/category_revenue_sum/{data_period}"
+    )
+
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(PROCESSING_CLEAN_CATEGORIES_PATH)
+    df = spark.read.option("header", "true").csv(processing_clean_categories_path)
 
     category_revenue_df = (
         df.groupBy("rank_category_name")
@@ -30,9 +30,17 @@ def sum_prices_by_category() -> None:
     )
 
     category_revenue_df.write.mode("overwrite").option("header", "true").csv(
-        PROCESSING_CATEGORY_REVENUE_SUM_PATH
+        processing_category_revenue_sum_path
     )
     spark.stop()
 
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data-period", "--data_period", required=True)
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    sum_prices_by_category()
+    args = parse_args()
+    sum_prices_by_category(args.data_period)

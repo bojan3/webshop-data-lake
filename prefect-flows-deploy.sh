@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+prefect deploy flows/batch/avg_events_per_session_by_event_type_06/flow_avg_events_per_session_by_event_type_06.py:avg_events_per_session_by_event_type_06 --name avg_events_per_session_by_event_type_06 --pool default-worker-pool
+prefect deploy flows/batch/avg_hourly_product_views_08/flow_avg_hourly_product_views_08.py:avg_hourly_product_views_08 --name avg_hourly_product_views_08 --pool default-worker-pool
+prefect deploy flows/batch/avg_monthly_add_to_cart_not_purchased_07/flow_avg_monthly_add_to_cart_not_purchased_07.py:avg_monthly_add_to_cart_not_purchased_07 --name avg_monthly_add_to_cart_not_purchased_07 --pool default-worker-pool
+prefect deploy flows/batch/daily_revenue_and_units_sold_02/flow_daily_revenue_and_units_sold_02.py:daily_revenue_and_units_sold_02 --name daily_revenue_and_units_sold_02 --pool default-worker-pool
+prefect deploy flows/batch/long_term_brand_popularity_index_10/flow_long_term_brand_popularity_index_10.py:long_term_brand_popularity_index_10 --name long_term_brand_popularity_index_10 --pool default-worker-pool
+prefect deploy flows/batch/rank_brands_by_total_revenue_04/flow_rank_brands_by_total_revenue_04.py:rank_brands_by_total_revenue_04 --name rank_brands_by_total_revenue_04 --pool default-worker-pool
+prefect deploy flows/batch/rank_brands_by_units_sold_03/flow_rank_brands_by_units_sold_03.py:rank_brands_by_units_sold_03 --name rank_brands_by_units_sold_03 --pool default-worker-pool
+prefect deploy flows/batch/rank_product_categories_by_total_revenu_01/flow_rank_product_categories_by_total_revenu_01.py:rank_product_categories_by_total_revenue_01 --name rank_product_categories_by_total_revenue_01 --pool default-worker-pool

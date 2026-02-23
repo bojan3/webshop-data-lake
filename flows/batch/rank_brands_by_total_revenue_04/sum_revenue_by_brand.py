@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 
+import argparse
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, sum as spark_sum
 
-DATA_PERIOD = "2020-Apr"
-
-PROCESSING_CLEAN_BRANDS_PATH = (
-    f"hdfs://namenode:9000/data/processing/purchases_clean_brands/{DATA_PERIOD}"
-)
-PROCESSING_BRAND_REVENUE_SUM_PATH = (
-    f"hdfs://namenode:9000/data/processing/brand_revenue_sum/{DATA_PERIOD}"
-)
-
 
 def create_spark_session() -> SparkSession:
-    return SparkSession.builder.appName("RankBrandsByTotalRevenue-Apr2020").getOrCreate()
+    return SparkSession.builder.appName("RankBrandsByTotalRevenue").getOrCreate()
 
 
-def sum_revenue_by_brand() -> None:
+def sum_revenue_by_brand(data_period: str) -> None:
+    processing_clean_brands_path = (
+        f"hdfs://namenode:9000/data/processing/purchases_clean_brands/{data_period}"
+    )
+    processing_brand_revenue_sum_path = (
+        f"hdfs://namenode:9000/data/processing/brand_revenue_sum/{data_period}"
+    )
+
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(PROCESSING_CLEAN_BRANDS_PATH)
+    df = spark.read.option("header", "true").csv(processing_clean_brands_path)
 
     brand_revenue_df = (
         df.groupBy("rank_brand_name")
@@ -28,11 +28,17 @@ def sum_revenue_by_brand() -> None:
     )
 
     brand_revenue_df.write.mode("overwrite").option("header", "true").csv(
-        PROCESSING_BRAND_REVENUE_SUM_PATH
+        processing_brand_revenue_sum_path
     )
     spark.stop()
 
 
-if __name__ == "__main__":
-    sum_revenue_by_brand()
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data-period", "--data_period", required=True)
+    return parser.parse_args()
 
+
+if __name__ == "__main__":
+    args = parse_args()
+    sum_revenue_by_brand(args.data_period)

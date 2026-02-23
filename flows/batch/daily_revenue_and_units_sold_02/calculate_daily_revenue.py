@@ -1,29 +1,27 @@
 # -*- coding: utf-8 -*-
 
+import argparse
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import avg, col, to_date
-
-DATA_PERIOD = "2020-Apr"
-INPUT_FILE_NAME = f"{DATA_PERIOD}.csv"
-
-INPUT_PATH = f"hdfs://namenode:9000/data/raw/{INPUT_FILE_NAME}"
-PROCESSING_DAILY_PURCHASE_EVENTS_PATH = (
-    f"hdfs://namenode:9000/data/processing/daily_purchase_events/{DATA_PERIOD}"
-)
-
-PROCESSING_DAILY_REVENUE_PATH = (
-    f"hdfs://namenode:9000/data/processing/daily_revenue/{DATA_PERIOD}"
-)
 
 
 def create_spark_session() -> SparkSession:
     return SparkSession.builder.appName(
-        "RankProductCategoriesByTotalRevenue-Apr2020"
+        "RankProductCategoriesByTotalRevenue"
     ).getOrCreate()
 
-def calculate_daily_revenue() -> None:
+
+def calculate_daily_revenue(data_period: str) -> None:
+    processing_daily_purchase_events_path = (
+        f"hdfs://namenode:9000/data/processing/daily_purchase_events/{data_period}"
+    )
+    processing_daily_revenue_path = (
+        f"hdfs://namenode:9000/data/processing/daily_revenue/{data_period}"
+    )
+
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(PROCESSING_DAILY_PURCHASE_EVENTS_PATH)
+    df = spark.read.option("header", "true").csv(processing_daily_purchase_events_path)
 
     daily_revenue_df = (
         df.withColumn("event_date", to_date(col("event_time")))
@@ -33,10 +31,17 @@ def calculate_daily_revenue() -> None:
     )
 
     daily_revenue_df.write.mode("overwrite").option("header", "true").csv(
-        PROCESSING_DAILY_REVENUE_PATH
+        processing_daily_revenue_path
     )
     spark.stop()
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data-period", "--data_period", required=True)
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    calculate_daily_revenue()
+    args = parse_args()
+    calculate_daily_revenue(args.data_period)
