@@ -8,6 +8,9 @@ from pyspark.sql.functions import col, lit, sum
 PROCESSING_LONG_TERM_BRAND_POPULARITY_INDEX_BASE_PATH = (
     "hdfs://namenode:9000/data/processing/monthly_long_term_brand_popularity_index/"
 )
+PROCESSING_TOTAL_LONG_TERM_BRAND_POPULARITY_INDEX_BASE_PATH = (
+    "hdfs://namenode:9000/data/processing/total_long_term_brand_popularity_index/"
+)
 
 CLICKHOUSE_URL = "jdbc:clickhouse://clickhouse:8123/webshop_data_lake"
 CLICKHOUSE_TABLE = "long_term_brand_popularity_index_total"
@@ -21,6 +24,9 @@ def create_spark_session() -> SparkSession:
 
 def sum_all_previous_months_and_publish_long_term_brand_popularity_index(data_period: str) -> None:
     spark = create_spark_session()
+    processing_total_long_term_brand_popularity_index_path = (
+        f"{PROCESSING_TOTAL_LONG_TERM_BRAND_POPULARITY_INDEX_BASE_PATH}{data_period}"
+    )
     df = (
         spark.read.option("header", "true")
         .option("recursiveFileLookup", "true")
@@ -36,6 +42,10 @@ def sum_all_previous_months_and_publish_long_term_brand_popularity_index(data_pe
         )
         .withColumn("batch_processing", lit(data_period))
         .orderBy(col("total_long_term_brand_popularity_index").desc())
+    )
+
+    total_index_df.write.mode("overwrite").option("header", "true").csv(
+        processing_total_long_term_brand_popularity_index_path
     )
 
     total_index_df.write.format("jdbc").mode("overwrite").option(

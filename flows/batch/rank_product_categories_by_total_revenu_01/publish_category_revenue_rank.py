@@ -34,7 +34,7 @@ def publish_category_revenue_rank(data_period: str) -> None:
         .orderBy(col("total_revenue").desc())
     )
 
-    ranked_df.write.format("jdbc").mode("overwrite").option(
+    ranked_df.write.format("jdbc").mode("append").option(
         "url", CLICKHOUSE_URL
     ).option("dbtable", CLICKHOUSE_TABLE).option(
         "driver", "com.clickhouse.jdbc.ClickHouseDriver"
