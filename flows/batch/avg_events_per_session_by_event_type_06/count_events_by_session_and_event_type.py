@@ -21,7 +21,7 @@ def count_events_by_session_and_event_type(data_period: str) -> None:
     )
 
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(processing_monthly_events_path)
+    df = spark.read.option("header", "true").parquet(processing_monthly_events_path)
 
     event_count_df = (
         df.groupBy("event_type", "user_session")
@@ -29,7 +29,7 @@ def count_events_by_session_and_event_type(data_period: str) -> None:
         .orderBy(col("event_type").asc())
     )
 
-    event_count_df.write.mode("overwrite").option("header", "true").csv(
+    event_count_df.write.mode("overwrite").option("header", "true").parquet(
         processing_event_count_by_session_path
     )
     spark.stop()

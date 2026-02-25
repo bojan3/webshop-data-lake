@@ -30,7 +30,7 @@ def sum_all_previous_months_and_publish_long_term_brand_popularity_index(data_pe
     df = (
         spark.read.option("header", "true")
         .option("recursiveFileLookup", "true")
-        .csv(PROCESSING_LONG_TERM_BRAND_POPULARITY_INDEX_BASE_PATH)
+        .parquet(PROCESSING_LONG_TERM_BRAND_POPULARITY_INDEX_BASE_PATH)
     )
 
     total_index_df = (
@@ -44,7 +44,7 @@ def sum_all_previous_months_and_publish_long_term_brand_popularity_index(data_pe
         .orderBy(col("total_long_term_brand_popularity_index").desc())
     )
 
-    total_index_df.write.mode("overwrite").option("header", "true").csv(
+    total_index_df.write.mode("overwrite").option("header", "true").parquet(
         processing_total_long_term_brand_popularity_index_path
     )
 

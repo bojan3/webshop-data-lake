@@ -19,7 +19,7 @@ def count_units_sold_by_brand(data_period: str) -> None:
     )
 
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(processing_clean_brands_path)
+    df = spark.read.option("header", "true").parquet(processing_clean_brands_path)
 
     brand_units_sold_df = (
         df.groupBy("rank_brand_name")
@@ -27,7 +27,7 @@ def count_units_sold_by_brand(data_period: str) -> None:
         .orderBy(col("units_sold").desc())
     )
 
-    brand_units_sold_df.write.mode("overwrite").option("header", "true").csv(
+    brand_units_sold_df.write.mode("overwrite").option("header", "true").parquet(
         processing_brand_units_sold_path
     )
     spark.stop()

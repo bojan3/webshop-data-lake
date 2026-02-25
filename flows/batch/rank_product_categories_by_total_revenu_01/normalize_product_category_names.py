@@ -38,7 +38,7 @@ def normalize_product_category_names(data_period: str) -> None:
     )
 
     spark = create_spark_session()
-    df = spark.read.option("header", "true").schema(get_schema()).csv(
+    df = spark.read.option("header", "true").schema(get_schema()).parquet(
         processing_purchases_path
     )
     cleaned_df = df.withColumn(
@@ -48,7 +48,7 @@ def normalize_product_category_names(data_period: str) -> None:
             "without category",
         ).otherwise(split(col("category_code"), r"\\.").getItem(0)),
     )
-    cleaned_df.write.mode("overwrite").option("header", "true").csv(
+    cleaned_df.write.mode("overwrite").option("header", "true").parquet(
         processing_clean_categories_path
     )
     spark.stop()

@@ -19,7 +19,7 @@ new_path = "hdfs://namenode:9000/data/processing/brand-event-count-new"
 new_df = (
     spark.read
     .option("header", "true")
-    .csv(new_path)
+    .parquet(new_path)
     .select("brand", "event_type", "event_count")
     .withColumn("event_count", col("event_count").cast("long"))
 )
@@ -28,7 +28,7 @@ try:
     old_df = (
         spark.read
         .option("header", "true")
-        .csv(old_path)
+        .parquet(old_path)
         .select("brand", "event_type", "event_count")
         .withColumn("event_count", col("event_count").cast("long"))
     )
@@ -46,7 +46,7 @@ except AnalysisException:
     result_df.write
     .mode("overwrite")
     .option("header", "true")
-    .csv(old_path)
+    .parquet(old_path)
 )
 
 spark.stop()

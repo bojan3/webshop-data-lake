@@ -45,7 +45,7 @@ def load_and_store_processing_view_events(data_period: str) -> None:
         .filter(col("event_type") == "view")
         .select("event_date", "event_hour", "event_type", "product_id", "user_id")
     )
-    view_df.write.mode("overwrite").option("header", "true").csv(
+    view_df.write.mode("overwrite").option("header", "true").parquet(
         processing_view_events_path
     )
     spark.stop()

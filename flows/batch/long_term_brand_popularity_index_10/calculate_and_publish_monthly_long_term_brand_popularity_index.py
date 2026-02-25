@@ -31,13 +31,13 @@ def calculate_and_publish_monthly_long_term_brand_popularity_index(data_period: 
 
     spark = create_spark_session()
 
-    cart_df = spark.read.option("header", "true").csv(
+    cart_df = spark.read.option("header", "true").parquet(
         processing_cart_events_by_brand_count_path
     )
-    purchase_df = spark.read.option("header", "true").csv(
+    purchase_df = spark.read.option("header", "true").parquet(
         processing_purchase_events_by_brand_count_path
     )
-    view_df = spark.read.option("header", "true").csv(
+    view_df = spark.read.option("header", "true").parquet(
         processing_view_events_by_brand_count_path
     )
 
@@ -68,7 +68,7 @@ def calculate_and_publish_monthly_long_term_brand_popularity_index(data_period: 
         .orderBy(col("long_term_brand_popularity_index").desc(), col("brand").asc())
     )
 
-    scored_df.write.mode("overwrite").option("header", "true").csv(
+    scored_df.write.mode("overwrite").option("header", "true").parquet(
         processing_long_term_brand_popularity_index_path
     )
 

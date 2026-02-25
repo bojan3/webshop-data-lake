@@ -21,7 +21,7 @@ def calculate_daily_revenue(data_period: str) -> None:
     )
 
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(processing_daily_purchase_events_path)
+    df = spark.read.option("header", "true").parquet(processing_daily_purchase_events_path)
 
     daily_revenue_df = (
         df.withColumn("event_date", to_date(col("event_time")))
@@ -30,7 +30,7 @@ def calculate_daily_revenue(data_period: str) -> None:
         .orderBy(col("event_date").asc())
     )
 
-    daily_revenue_df.write.mode("overwrite").option("header", "true").csv(
+    daily_revenue_df.write.mode("overwrite").option("header", "true").parquet(
         processing_daily_revenue_path
     )
     spark.stop()

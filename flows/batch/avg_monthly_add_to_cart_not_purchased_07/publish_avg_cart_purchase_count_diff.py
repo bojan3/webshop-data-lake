@@ -23,7 +23,7 @@ def publish_avg_cart_purchase_count_diff(data_period: str) -> None:
     )
 
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(processing_cart_purchase_count_diff_path)
+    df = spark.read.option("header", "true").parquet(processing_cart_purchase_count_diff_path)
 
     avg_diff_df = (
         df.agg(

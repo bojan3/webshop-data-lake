@@ -21,7 +21,7 @@ def publish_brand_units_sold_rank(data_period: str) -> None:
     )
 
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(processing_brand_units_sold_path)
+    df = spark.read.option("header", "true").parquet(processing_brand_units_sold_path)
 
     ranked_df = (
         df.select(

@@ -19,13 +19,13 @@ def count_processing_view_events_by_brand(data_period: str) -> None:
     )
 
     spark = create_spark_session()
-    view_df = spark.read.option("header", "true").csv(processing_view_events_path)
+    view_df = spark.read.option("header", "true").parquet(processing_view_events_path)
 
     view_count_by_brand_df = view_df.groupBy(col("brand")).agg(
         count(col("event_type")).alias("view_events_count")
     )
 
-    view_count_by_brand_df.write.mode("overwrite").option("header", "true").csv(
+    view_count_by_brand_df.write.mode("overwrite").option("header", "true").parquet(
         processing_view_events_by_brand_count_path
     )
     spark.stop()

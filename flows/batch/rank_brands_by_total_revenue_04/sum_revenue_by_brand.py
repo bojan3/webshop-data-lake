@@ -19,7 +19,7 @@ def sum_revenue_by_brand(data_period: str) -> None:
     )
 
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(processing_clean_brands_path)
+    df = spark.read.option("header", "true").parquet(processing_clean_brands_path)
 
     brand_revenue_df = (
         df.groupBy("rank_brand_name")
@@ -27,7 +27,7 @@ def sum_revenue_by_brand(data_period: str) -> None:
         .orderBy(col("total_revenue").desc())
     )
 
-    brand_revenue_df.write.mode("overwrite").option("header", "true").csv(
+    brand_revenue_df.write.mode("overwrite").option("header", "true").parquet(
         processing_brand_revenue_sum_path
     )
     spark.stop()

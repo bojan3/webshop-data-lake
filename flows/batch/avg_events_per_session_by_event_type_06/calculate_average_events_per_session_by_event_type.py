@@ -23,7 +23,7 @@ def calculate_average_events_per_session_by_event_type(data_period: str) -> None
     )
 
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(processing_event_count_by_session_path)
+    df = spark.read.option("header", "true").parquet(processing_event_count_by_session_path)
 
     avg_events_df = (
         df.groupBy("event_type")

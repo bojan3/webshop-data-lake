@@ -26,8 +26,8 @@ def publish_daily_sales_metrics(data_period: str) -> None:
     )
 
     spark = create_spark_session()
-    revenue_df = spark.read.option("header", "true").csv(processing_daily_revenue_path)
-    units_sold_df = spark.read.option("header", "true").csv(
+    revenue_df = spark.read.option("header", "true").parquet(processing_daily_revenue_path)
+    units_sold_df = spark.read.option("header", "true").parquet(
         processing_daily_units_sold_path
     )
 

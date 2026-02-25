@@ -42,7 +42,7 @@ def load_purchase_events_for_daily_metrics(data_period: str) -> None:
         "event_time", to_timestamp(col("event_time"), "yyyy-MM-dd HH:mm:ss z")
     )
     purchase_df = df.filter(col("event_type") == "purchase")
-    purchase_df.write.mode("overwrite").option("header", "true").csv(
+    purchase_df.write.mode("overwrite").option("header", "true").parquet(
         processing_daily_purchase_events_path
     )
     spark.stop()

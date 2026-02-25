@@ -19,13 +19,13 @@ def count_processing_cart_events_by_brand(data_period: str) -> None:
     )
 
     spark = create_spark_session()
-    cart_df = spark.read.option("header", "true").csv(processing_cart_events_path)
+    cart_df = spark.read.option("header", "true").parquet(processing_cart_events_path)
 
     cart_count_by_brand_df = cart_df.groupBy(col("brand")).agg(
         count(col("event_type")).alias("cart_events_count")
     )
 
-    cart_count_by_brand_df.write.mode("overwrite").option("header", "true").csv(
+    cart_count_by_brand_df.write.mode("overwrite").option("header", "true").parquet(
         processing_cart_events_by_brand_count_path
     )
     spark.stop()

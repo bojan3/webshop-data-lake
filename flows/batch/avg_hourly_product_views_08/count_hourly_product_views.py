@@ -19,7 +19,7 @@ def count_hourly_product_views(data_period: str) -> None:
     )
 
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(processing_view_events_path)
+    df = spark.read.option("header", "true").parquet(processing_view_events_path)
 
     hourly_views_df = (
         df.groupBy("event_date", "event_hour")
@@ -27,7 +27,7 @@ def count_hourly_product_views(data_period: str) -> None:
         .orderBy(col("event_date").asc(), col("event_hour").asc())
     )
 
-    hourly_views_df.write.mode("overwrite").option("header", "true").csv(
+    hourly_views_df.write.mode("overwrite").option("header", "true").parquet(
         processing_hourly_product_views_path
     )
     spark.stop()

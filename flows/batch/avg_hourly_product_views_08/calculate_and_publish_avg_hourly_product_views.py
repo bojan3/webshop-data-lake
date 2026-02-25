@@ -21,7 +21,7 @@ def calculate_and_publish_avg_hourly_product_views(data_period: str) -> None:
     )
 
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(processing_hourly_product_views_path)
+    df = spark.read.option("header", "true").parquet(processing_hourly_product_views_path)
 
     avg_hourly_views_df = (
         df.groupBy("event_hour")

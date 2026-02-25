@@ -19,7 +19,7 @@ def normalize_brand_names(data_period: str) -> None:
     )
 
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(processing_purchases_path)
+    df = spark.read.option("header", "true").parquet(processing_purchases_path)
 
     cleaned_df = df.withColumn(
         "rank_brand_name",
@@ -28,7 +28,7 @@ def normalize_brand_names(data_period: str) -> None:
         ),
     )
 
-    cleaned_df.write.mode("overwrite").option("header", "true").csv(
+    cleaned_df.write.mode("overwrite").option("header", "true").parquet(
         processing_clean_brands_path
     )
     spark.stop()

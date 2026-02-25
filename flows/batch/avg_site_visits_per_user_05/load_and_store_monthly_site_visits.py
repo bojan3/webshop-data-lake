@@ -8,7 +8,7 @@ from pyspark.sql.types import DoubleType, LongType, StringType, StructField, Str
 
 
 def create_spark_session() -> SparkSession:
-    return SparkSession.builder.appName("LongTermBrandPopularityIndex10").getOrCreate()
+    return SparkSession.builder.appName("AvgSiteVisitsPerUser").getOrCreate()
 
 
 def get_schema() -> StructType:
@@ -27,30 +27,32 @@ def get_schema() -> StructType:
     )
 
 
-def load_processing_purchase_events(data_period: str) -> None:
+def load_and_store_monthly_site_visits(data_period: str) -> None:
     input_file_name = f"{data_period}.csv"
     input_path = f"hdfs://namenode:9000/data/raw/{input_file_name}"
-    processing_purchase_events_path = (
-        f"hdfs://namenode:9000/data/processing/monthly_purchase_events/{data_period}"
+    processing_monthly_site_visits_path = (
+        f"hdfs://namenode:9000/data/processing/monthly_site_visits/{data_period}"
     )
 
     spark = create_spark_session()
     df = spark.read.option("header", "true").schema(get_schema()).csv(input_path)
-    purchase_df = df.filter(col("event_type") == "purchase").select(
-        "event_time", "event_type", "product_id", "brand", "user_id"
+    monthly_site_visits_df = (
+        df.filter(col("user_id").isNotNull() & col("user_session").isNotNull())
+        .select("user_id", "user_session")
+        .distinct()
     )
-    purchase_df.write.mode("overwrite").option("header", "true").parquet(
-        processing_purchase_events_path
+    monthly_site_visits_df.write.mode("overwrite").option("header", "true").parquet(
+        processing_monthly_site_visits_path
     )
     spark.stop()
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data-period", required=True)
+    parser.add_argument("--data-period", "--data_period", required=True)
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    load_processing_purchase_events(args.data_period)
+    load_and_store_monthly_site_visits(args.data_period)

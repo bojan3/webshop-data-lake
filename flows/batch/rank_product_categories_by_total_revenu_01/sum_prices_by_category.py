@@ -21,7 +21,7 @@ def sum_prices_by_category(data_period: str) -> None:
     )
 
     spark = create_spark_session()
-    df = spark.read.option("header", "true").csv(processing_clean_categories_path)
+    df = spark.read.option("header", "true").parquet(processing_clean_categories_path)
 
     category_revenue_df = (
         df.groupBy("rank_category_name")
@@ -29,7 +29,7 @@ def sum_prices_by_category(data_period: str) -> None:
         .orderBy(col("total_revenue").desc())
     )
 
-    category_revenue_df.write.mode("overwrite").option("header", "true").csv(
+    category_revenue_df.write.mode("overwrite").option("header", "true").parquet(
         processing_category_revenue_sum_path
     )
     spark.stop()

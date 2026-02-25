@@ -41,7 +41,7 @@ def filter_and_store_processing_cart_events(data_period: str) -> None:
     cart_df = df.filter(col("event_type") == "cart").select(
         "event_time", "user_id", "event_type", "product_id"
     )
-    cart_df.write.mode("overwrite").option("header", "true").csv(
+    cart_df.write.mode("overwrite").option("header", "true").parquet(
         processing_cart_events_path
     )
     spark.stop()

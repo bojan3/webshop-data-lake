@@ -41,7 +41,7 @@ def load_and_store_monthly_events(data_period: str) -> None:
     events_df = df.withColumn(
         "event_time", to_timestamp(col("event_time"), "yyyy-MM-dd HH:mm:ss z")
     )
-    events_df.write.mode("overwrite").option("header", "true").csv(
+    events_df.write.mode("overwrite").option("header", "true").parquet(
         processing_monthly_events_path
     )
     spark.stop()

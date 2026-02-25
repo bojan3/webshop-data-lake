@@ -18,7 +18,7 @@ output_path = "hdfs://namenode:9000/data/curated/brand-points"
 df = (
     spark.read
     .option("header", "true")
-    .csv(input_path)
+    .parquet(input_path)
     .withColumn("event_count", col("event_count").cast("long"))
 )
 
@@ -44,4 +44,3 @@ result_df = (
 )
 
 spark.stop()
-

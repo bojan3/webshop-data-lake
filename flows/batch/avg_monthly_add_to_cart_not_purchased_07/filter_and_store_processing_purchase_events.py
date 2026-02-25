@@ -41,7 +41,7 @@ def filter_and_store_processing_purchase_events(data_period: str) -> None:
     purchase_df = df.filter(col("event_type") == "purchase").select(
         "event_time", "user_id", "event_type", "product_id"
     )
-    purchase_df.write.mode("overwrite").option("header", "true").csv(
+    purchase_df.write.mode("overwrite").option("header", "true").parquet(
         processing_purchase_events_path
     )
     spark.stop()

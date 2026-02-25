@@ -27,7 +27,7 @@ result = (
     result.write
     .mode("overwrite")
     .option("header", "true")
-    .csv("hdfs://namenode:9000/data/processing/brand-event-count-new")
+    .parquet("hdfs://namenode:9000/data/processing/brand-event-count-new")
 
 )
 

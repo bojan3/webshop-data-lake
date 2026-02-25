@@ -25,10 +25,10 @@ def join_cart_and_purchase_counts(data_period: str) -> None:
 
     spark = create_spark_session()
 
-    cart_counts_df = spark.read.option("header", "true").csv(
+    cart_counts_df = spark.read.option("header", "true").parquet(
         processing_cart_events_by_user_count_path
     )
-    purchase_counts_df = spark.read.option("header", "true").csv(
+    purchase_counts_df = spark.read.option("header", "true").parquet(
         processing_purchase_events_by_user_count_path
     )
 
@@ -44,7 +44,7 @@ def join_cart_and_purchase_counts(data_period: str) -> None:
         )
     )
 
-    result_df.write.mode("overwrite").option("header", "true").csv(
+    result_df.write.mode("overwrite").option("header", "true").parquet(
         processing_cart_purchase_count_diff_path
     )
     spark.stop()
