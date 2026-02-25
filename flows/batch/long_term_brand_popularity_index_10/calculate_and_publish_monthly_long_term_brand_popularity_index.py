@@ -26,7 +26,7 @@ def calculate_and_publish_monthly_long_term_brand_popularity_index(data_period: 
         f"hdfs://namenode:9000/data/processing/monthly_view_events_by_brand_count/{data_period}"
     )
     processing_long_term_brand_popularity_index_path = (
-        f"hdfs://namenode:9000/data/processing/monthly_long_term_brand_popularity_index/{data_period}"
+        f"hdfs://namenode:9000/data/processing/monthly_long_term_brand_popularity_index_new/{data_period}"
     )
 
     spark = create_spark_session()

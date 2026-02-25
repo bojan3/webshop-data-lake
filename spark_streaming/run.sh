@@ -1,0 +1,1 @@
+PYSPARK_PYTHON=python3 PYSPARK_DRIVER_PYTHON=python3 /spark/bin/spark-submit   --packages com.clickhouse:clickhouse-jdbc:0.6.3,org.apache.httpcomponents.client5:httpclient5:5.2.1,org.apache.httpcomponents.core5:httpcore5:5.2.1,org.apache.spark:spark-sql-kafka-0-10_2.12:3.0.1   /spark_streaming/daily_brand_popularity_index.py --data-period MANUAL
